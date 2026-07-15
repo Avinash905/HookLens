@@ -1,0 +1,134 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String    @id @default(cuid())
+  email         String?  @unique
+  emailVerified DateTime? @map("email_verified")
+  name          String?
+  image         String?
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+
+  accounts Account[]
+  sessions Session[]
+  endpoints Endpoint[]
+
+  @@map("users")
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String  @map("user_id")
+  type              String
+  provider          String
+  providerAccountId String  @map("provider_account_id")
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@index([userId])
+  @@map("accounts")
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique @map("session_token")
+  userId       String   @map("user_id")
+  expires      DateTime
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("sessions")
+}
+
+model VerificationToken {
+  identifier String
+  token      String
+  expires    DateTime
+
+  @@unique([identifier, token])
+  @@map("verification_tokens")
+}
+
+model Endpoint {
+  id            String    @id @default(cuid())
+  userId        String    @map("user_id")
+  name          String
+  slug          String    @unique
+  forwardUrl    String?   @map("forward_url")
+  autoForward   Boolean   @default(false) @map("auto_forward")
+  signingSecret String?   @map("signing_secret")
+  requestCount  Int       @default(0) @map("request_count")
+  lastRequestAt DateTime? @map("last_request_at")
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+
+  user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  requests Request[]
+
+  @@index([userId])
+  @@index([userId, createdAt(sort: Desc)])
+  @@map("endpoints")
+}
+
+model Request {
+  id                  String    @id @default(cuid())
+  endpointId          String    @map("endpoint_id")
+  method              String
+  headers             Json
+  body                String?
+  queryParams         Json      @default("{}") @map("query_params")
+  ipAddress           String?   @map("ip_address")
+  signatureVerified   Boolean?  @map("signature_verified")
+  responseStatus      Int       @default(200) @map("response_status")
+  responseTime        Int       @map("response_time")
+  forwardStatus       String?   @map("forward_status")
+  forwardResponseCode Int?      @map("forward_response_code")
+  forwardResponseTime Int?      @map("forward_response_time")
+  failureStatus       String?   @map("failure_status")
+  bodySize            Int       @default(0) @map("body_size")
+  createdAt           DateTime  @default(now()) @map("created_at")
+
+  endpoint   Endpoint    @relation(fields: [endpointId], references: [id], onDelete: Cascade)
+  replayLogs ReplayLog[]
+
+  @@index([endpointId, createdAt(sort: Desc)])
+  @@index([endpointId, id])
+  @@index([endpointId, failureStatus])
+  @@index([createdAt])
+  @@map("requests")
+}
+
+model ReplayLog {
+  id              String    @id @default(cuid())
+  requestId       String    @map("request_id")
+  targetUrl       String    @map("target_url")
+  responseStatus  Int?      @map("response_status")
+  responseHeaders Json?     @map("response_headers")
+  responseBody    String?   @map("response_body")
+  responseTime    Int?      @map("response_time")
+  status          String
+  isRecovery      Boolean   @default(false) @map("is_recovery")
+  errorMessage    String?   @map("error_message")
+  createdAt       DateTime  @default(now()) @map("created_at")
+
+  request Request @relation(fields: [requestId], references: [id], onDelete: Cascade)
+
+  @@index([requestId, createdAt(sort: Desc)])
+  @@map("replay_logs")
+}
