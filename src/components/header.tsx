@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useSession, signOut, signIn } from "next-auth/react";
+import { useSession, signOut } from "next-auth/react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -11,6 +11,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Webhook, LogOut, LayoutDashboard } from "lucide-react";
+import { SignInButton } from "@/components/sign-in-button";
 
 export function Header() {
   const { data: session, status } = useSession();
@@ -48,7 +49,7 @@ export function Header() {
             </DropdownMenuContent>
           </DropdownMenu>
         ) : (
-          <Button onClick={() => signIn("github")}>Get Started</Button>
+          <SignInButton>Get Started</SignInButton>
         )}
       </div>
     </header>
