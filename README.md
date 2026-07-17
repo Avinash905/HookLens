@@ -1,6 +1,6 @@
 # HookLens
 
-A webhook inspection tool for GitHub webhooks. Capture, inspect, replay, and debug webhook requests with live SSE updates and failure analysis.
+A webhook inspection and debugging tool. Capture, inspect, replay, and debug webhook requests from any provider with live SSE updates and failure analysis.
 
 ## Tech Stack
 
@@ -50,7 +50,7 @@ Open [http://localhost:3000](http://localhost:3000).
 ## Features
 
 - **Webhook capture** — Unique URL per endpoint, supports POST/GET/PUT/DELETE/PATCH
-- **GitHub signature verification** — HMAC-SHA256 with constant-time comparison
+- **Signature verification** — HMAC-SHA256 verification for GitHub webhooks (`x-hub-signature-256` header). Support for other providers (Stripe, Shopify, Slack) is planned
 - **Live feed** — Real-time request updates via Server-Sent Events
 - **Request inspector** — View headers, body, query params with JSON formatting
 - **cURL export** — Copy any captured request as a curl command
